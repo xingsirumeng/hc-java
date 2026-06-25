@@ -1,0 +1,18 @@
+# Include source distribution files
+include *.md
+include *.txt
+include *.toml
+include *.env.example
+recursive-include src *.py
+recursive-include src *.typed
+
+# Exclude development artifacts
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude .DS_Store
+
+# Exclude sensitive files
+global-exclude *.env
+prune .venv
+prune .idea
+prune src/**/__pycache__

@@ -1,0 +1,34 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE files (root level)
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Uploaded files (user data)
+uploads/
+
+# PowerPoint / large binary presentation files
+*.pptx
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Java/Maven (in case of root-level build)
+target/
+*.class
+*.jar
+*.war
+
+# Logs
+*.log

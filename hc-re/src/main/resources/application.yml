@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: hc-re
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  #配置数据库的连接信息
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hc  # PostgreSQL默认端口是5432
+    driver-class-name: org.postgresql.Driver
+    username: postgres  # PostgreSQL默认用户名
+    password: 123321
+server:
+  servlet:
+    context-path: /api
+
+jwt:
+  secret: hc-re-teacher-login-secret-key-2026
+  expiration: 86400000  # 24小时
+
+# 文件上传/存储路径
+upload:
+  path: ./uploads
+
+#Mybatis的相关配置
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #开启驼峰命名映射开关
+    map-underscore-to-camel-case: true

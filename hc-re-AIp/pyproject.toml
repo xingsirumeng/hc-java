@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hc_re_ai"
+version = "0.2.0"
+description = "Text extraction (OCR) + AIGC detection + AI grading HTTP service"
+readme = "AIGC_API_GUIDE.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "hc_re_ai contributors"},
+]
+keywords = ["ocr", "easyocr", "aigc-detection", "ai-grading", "fastapi"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "easyocr>=1.7.1",
+    "zerotrue-sdk",
+    "fastapi>=0.110.0",
+    "Pillow>=9.0.0",
+    "python-docx>=0.8.11",
+    "python-dotenv>=1.0.0",
+    "python-multipart>=0.0.9",
+    "uvicorn>=0.29.0",
+]
+
+[project.optional-dependencies]
+server = [
+    "uvicorn>=0.29.0",
+    "fastapi>=0.110.0",
+    "python-multipart>=0.0.9",
+]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.scripts]
+hc-re-ai = "hc_re_ai.http_service:main"
+
+[project.urls]
+Documentation = "https://github.com/example/hc_re_ai"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+hc_re_ai = ["py.typed"]

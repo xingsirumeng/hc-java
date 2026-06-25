@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python -c \"from hc_re_ai import JobProcessor, JobResult, detect_file_type, load_config, EasyOcrClient; print\\('All key imports OK'\\)\")",
+      "Bash(.venv/Scripts/pip show *)"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+easyocr>=1.7.1
+zerotrue-sdk
+fastapi>=0.110.0
+Pillow>=9.0.0
+python-docx>=0.8.11
+python-dotenv>=1.0.0
+python-multipart>=0.0.9
+uvicorn>=0.29.0
