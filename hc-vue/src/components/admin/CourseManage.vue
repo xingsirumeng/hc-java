@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import * as adminApi from '@/api/admin'
 import type { Course, Teacher } from '@/types/teacher'
+import { useToast } from '@/composables/useToast'
 
 const courses = ref<Course[]>([])
 const teachers = ref<Teacher[]>([])
@@ -13,6 +14,7 @@ const editingCourse = ref<Course | null>(null)
 const form = ref<Course>({ courseId: '', courseName: '', teacherId: '', credit: 0 })
 const submitting = ref(false)
 const formError = ref('')
+const { showSuccess, showError } = useToast()
 
 const filteredCourses = computed(() => {
   if (!searchText.value) return courses.value
@@ -77,6 +79,7 @@ async function handleSubmit() {
     }
     closeModal()
     await load()
+    showSuccess('操作成功')
   } catch (e: any) {
     formError.value = e?.message || '操作失败'
   } finally {
@@ -89,8 +92,9 @@ async function handleDelete(c: Course) {
   try {
     await adminApi.deleteCourse(c.courseId)
     await load()
+    showSuccess('删除成功')
   } catch (e: any) {
-    alert(e?.message || '删除失败')
+    showError(e?.message || '删除失败')
   }
 }
 

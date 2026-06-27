@@ -173,6 +173,17 @@ export async function deleteSubmission(assignmentName: string, studentId: string
   return res.data.data
 }
 
+/** 批量删除提交记录 */
+export async function batchDeleteSubmissions(
+  submissions: Array<{ assignmentName: string; studentId: string }>,
+): Promise<string> {
+  const res = await api.delete<Result<string>>('/admin/submissions/batch', {
+    data: { submissions },
+  })
+  if (res.data.code !== 1) throw new Error(res.data.msg)
+  return res.data.data
+}
+
 // ================================================================
 // 选课管理 (Sc)
 // ================================================================

@@ -23,18 +23,22 @@ public interface SubmissionMapper {
     Submission findByStudentAndAssignment(String assignmentName, String studentId);
 
     @Update("UPDATE submission SET score = #{score}, comment = #{comment}, " +
-            "annotated_filepath = #{annotatedFilepath} " +
+            "annotated_filepath = #{annotatedFilepath}, " +
+            "grade_attachments = #{gradeAttachments}::jsonb, " +
+            "status = CASE WHEN status = 'returned' THEN 'submitted' ELSE status END " +
             "WHERE assignment_name = #{assignmentName} AND student_id = #{studentId}")
     void updateGrade(String assignmentName, String studentId, Integer score,
-                     String comment, String annotatedFilepath);
+                     String comment, String annotatedFilepath, String gradeAttachments);
 
-    @Insert("INSERT INTO submission (assignment_name, student_id, submission_time, filepath, original_filename) " +
-            "VALUES (#{assignmentName}, #{studentId}, #{submissionTime}, #{filepath}, #{originalFilename}) " +
+    @Insert("INSERT INTO submission (assignment_name, student_id, submission_time, filepath, original_filename, status) " +
+            "VALUES (#{assignmentName}, #{studentId}, #{submissionTime}, #{filepath}, #{originalFilename}, " +
+            "COALESCE(#{status}, 'submitted')) " +
             "ON CONFLICT (assignment_name, student_id) DO UPDATE SET " +
             "submission_time = EXCLUDED.submission_time, " +
             "filepath = EXCLUDED.filepath, " +
             "original_filename = EXCLUDED.original_filename, " +
-            "score = NULL, comment = NULL, aigc_score = NULL")
+            "score = NULL, comment = NULL, aigc_score = NULL, " +
+            "status = 'submitted', return_reason = NULL")
     void insert(Submission submission);
 
     @Update("UPDATE submission SET aigc_score = #{aigcScore} " +
@@ -46,4 +50,8 @@ public interface SubmissionMapper {
 
     @Delete("DELETE FROM submission WHERE assignment_name = #{assignmentName} AND student_id = #{studentId}")
     void deleteByAssignmentAndStudent(String assignmentName, String studentId);
+
+    @Update("UPDATE submission SET status = #{status}, return_reason = #{returnReason} " +
+            "WHERE assignment_name = #{assignmentName} AND student_id = #{studentId}")
+    void updateStatus(String assignmentName, String studentId, String status, String returnReason);
 }

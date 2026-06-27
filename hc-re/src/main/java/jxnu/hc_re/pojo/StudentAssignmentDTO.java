@@ -27,4 +27,7 @@ public class StudentAssignmentDTO {
     private String comment;
     private Integer aigcScore;
     private String annotatedFilepath;
+    private String status;
+    private String returnReason;
+    private String gradeAttachments;
 }

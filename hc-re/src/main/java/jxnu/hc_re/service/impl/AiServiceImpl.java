@@ -107,6 +107,32 @@ public class AiServiceImpl implements AiService {
         return stripped;
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> processFile(String filepath) {
+        File file = fileService.resolveFile(filepath);
+        MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
+        form.add("file", new FileSystemResource(file));
+        form.add("with_location", "false");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(form, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                AI_SERVICE + "/api/v1/process/upload", request, Map.class);
+        Map<String, Object> result = response.getBody();
+        if (result == null) {
+            throw new RuntimeException("AI 文本提取服务返回为空");
+        }
+        // Python ProcessResponse 始终带 error 字段（默认空串），只有非空时才算真错误
+        Object errorObj = result.get("error");
+        if (errorObj instanceof String && !((String) errorObj).isEmpty()) {
+            throw new RuntimeException((String) errorObj);
+        }
+        return result;
+    }
+
     // ── 工具方法 ──
 
     @SuppressWarnings("unchecked")

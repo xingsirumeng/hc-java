@@ -11,4 +11,7 @@ public interface AiService {
 
     /** AIGC 文件检测：上传文件 → 提取文本 → 检测 → 结果存库 */
     Map<String, Object> aigcDetectFile(String filepath, String assignmentName, String studentId);
+
+    /** 从文件中提取文本 */
+    Map<String, Object> processFile(String filepath);
 }

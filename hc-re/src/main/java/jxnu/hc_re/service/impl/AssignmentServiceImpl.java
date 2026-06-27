@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import jxnu.hc_re.mapper.AssignmentMapper;
 import jxnu.hc_re.mapper.SubmissionMapper;
@@ -44,6 +45,14 @@ public class AssignmentServiceImpl implements AssignmentService {
     @Override
     public void deleteAssignment(String name) {
         assignmentMapper.deleteByName(name);
+    }
+
+    @Override
+    @Transactional
+    public void batchDeleteAssignments(List<String> names) {
+        for (String name : names) {
+            assignmentMapper.deleteByName(name);
+        }
     }
 
     @Override

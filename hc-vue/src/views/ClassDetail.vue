@@ -65,7 +65,7 @@ onMounted(loadAssignments)
 
 <style scoped>
 .class-detail {
-  max-width: 1100px;
+  max-width: 1300px;
   margin: 0 auto;
   padding: 32px 16px;
 }

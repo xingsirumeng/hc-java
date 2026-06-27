@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { createAssignment, updateAssignment } from '@/api/teacher'
+import { useToast } from '@/composables/useToast'
 import type { Assignment } from '@/types/teacher'
+
+const { showSuccess, showError } = useToast()
 
 const props = defineProps<{
   courseId: string
@@ -23,7 +26,6 @@ const form = reactive({
 })
 
 const loading = ref(false)
-const error = ref('')
 
 function toDatetimeLocal(iso: string): string {
   const d = new Date(iso)
@@ -43,12 +45,11 @@ onMounted(() => {
 
 async function handleSubmit() {
   if (!form.name || !form.startTime || !form.endTime) {
-    error.value = '请填写所有字段'
+    showError('请填写所有字段')
     return
   }
 
   loading.value = true
-  error.value = ''
 
   try {
     const data = {
@@ -60,13 +61,15 @@ async function handleSubmit() {
     }
     if (isEdit) {
       await updateAssignment(props.editAssignment!.name, data)
+      showSuccess('作业修改成功')
     } else {
       await createAssignment(data)
+      showSuccess('作业布置成功')
     }
     emit('created')
   } catch (e: any) {
     const detail = e?.response?.data?.msg || e?.message || '未知错误'
-    error.value = (isEdit ? '修改失败: ' : '布置失败: ') + detail
+    showError((isEdit ? '修改失败: ' : '布置失败: ') + detail)
   } finally {
     loading.value = false
   }
@@ -105,8 +108,6 @@ async function handleSubmit() {
         </button>
         <button type="button" class="btn-cancel" @click="emit('close')">取消</button>
       </form>
-
-      <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
   </div>
 </template>

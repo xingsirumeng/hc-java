@@ -348,6 +348,26 @@ public class AdminController {
         return Result.success("提交记录删除成功");
     }
 
+    /** 批量删除提交记录 */
+    @SuppressWarnings("unchecked")
+    @DeleteMapping("/submissions/batch")
+    public Result<String> batchDeleteSubmissions(@RequestBody Map<String, Object> body) {
+        List<Map<String, String>> items = (List<Map<String, String>>) body.get("submissions");
+        if (items == null || items.isEmpty()) {
+            return Result.error("请提供要删除的提交记录列表");
+        }
+        int count = 0;
+        for (Map<String, String> item : items) {
+            String assignmentName = item.get("assignmentName");
+            String studentId = item.get("studentId");
+            if (assignmentName != null && studentId != null) {
+                submissionService.deleteSubmission(assignmentName, studentId);
+                count++;
+            }
+        }
+        return Result.success("批量删除成功，共删除 " + count + " 条提交记录");
+    }
+
     // ================================================================
     // 选课管理
     // ================================================================

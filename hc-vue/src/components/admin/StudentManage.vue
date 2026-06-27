@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import * as adminApi from '@/api/admin'
 import type { Student } from '@/types/teacher'
+import { useToast } from '@/composables/useToast'
 
 const students = ref<Student[]>([])
 const loading = ref(true)
@@ -12,6 +13,7 @@ const editingStudent = ref<Student | null>(null)
 const form = ref<Student>({ studentId: '', name: '', password: '' })
 const submitting = ref(false)
 const formError = ref('')
+const { showSuccess, showError } = useToast()
 
 const filteredStudents = computed(() => {
   if (!searchText.value) return students.value
@@ -72,6 +74,7 @@ async function handleSubmit() {
     }
     closeModal()
     await load()
+    showSuccess('操作成功')
   } catch (e: any) {
     formError.value = e?.message || '操作失败'
   } finally {
@@ -84,8 +87,9 @@ async function handleDelete(s: Student) {
   try {
     await adminApi.deleteStudent(s.studentId)
     await load()
+    showSuccess('删除成功')
   } catch (e: any) {
-    alert(e?.message || '删除失败')
+    showError(e?.message || '删除失败')
   }
 }
 

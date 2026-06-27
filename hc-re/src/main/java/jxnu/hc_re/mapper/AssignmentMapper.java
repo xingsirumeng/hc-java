@@ -47,6 +47,8 @@ public interface AssignmentMapper {
             "s.submission_time AS submissionTime, s.filepath, s.original_filename AS originalFilename, " +
             "s.score, s.comment, s.aigc_score AS aigcScore, " +
             "s.annotated_filepath AS annotatedFilepath, " +
+            "s.status, s.return_reason AS returnReason, " +
+            "s.grade_attachments AS gradeAttachments, " +
             "CASE WHEN s.student_id IS NOT NULL THEN true ELSE false END AS submitted " +
             "FROM assignment a " +
             "JOIN courses c ON a.course_id = c.course_id " +
@@ -66,6 +68,8 @@ public interface AssignmentMapper {
             "s.submission_time AS submissionTime, s.filepath, s.original_filename AS originalFilename, " +
             "s.score, s.comment, s.aigc_score AS aigcScore, " +
             "s.annotated_filepath AS annotatedFilepath, " +
+            "s.status, s.return_reason AS returnReason, " +
+            "s.grade_attachments AS gradeAttachments, " +
             "CASE WHEN s.student_id IS NOT NULL THEN true ELSE false END AS submitted " +
             "FROM assignment a " +
             "JOIN courses c ON a.course_id = c.course_id " +

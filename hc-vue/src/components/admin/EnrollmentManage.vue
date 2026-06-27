@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import * as adminApi from '@/api/admin'
 import type { ScRecord } from '@/api/admin'
 import type { Student, Course } from '@/types/teacher'
+import { useToast } from '@/composables/useToast'
 
 const enrollments = ref<ScRecord[]>([])
 const students = ref<Student[]>([])
@@ -14,6 +15,7 @@ const showModal = ref(false)
 const form = ref({ studentId: '', courseId: '' })
 const submitting = ref(false)
 const formError = ref('')
+const { showSuccess, showError } = useToast()
 
 const courseOptions = computed(() => {
   if (!filterCourseId.value) return courses.value
@@ -81,6 +83,7 @@ async function handleSubmit() {
     await adminApi.addEnrollment(form.value.studentId, form.value.courseId)
     closeModal()
     await load()
+    showSuccess('选课成功')
   } catch (e: any) {
     formError.value = e?.message || '操作失败'
   } finally {
@@ -95,8 +98,9 @@ async function handleDelete(e: ScRecord) {
   try {
     await adminApi.deleteEnrollment(e.scId)
     await load()
+    showSuccess('退课成功')
   } catch (e2: any) {
-    alert(e2?.message || '删除失败')
+    showError(e2?.message || '删除失败')
   }
 }
 

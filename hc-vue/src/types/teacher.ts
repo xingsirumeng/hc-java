@@ -88,4 +88,26 @@ export interface Submission {
   comment: string | null
   aigcScore: number | null
   annotatedFilepath: string | null
+  status: string | null
+  returnReason: string | null
+  gradeAttachments: string | null
+}
+
+export interface DeadlineExtension {
+  id: number
+  assignmentName: string
+  studentId: string
+  extendedEndTime: string
+  reason: string | null
+  createdAt: string
+}
+
+export interface AssignmentSimilarity {
+  id: number
+  assignmentName: string
+  studentId1: string
+  studentId2: string
+  similarityScore: number | null
+  detail: string | null
+  createdAt: string
 }

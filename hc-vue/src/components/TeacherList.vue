@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getAllTeachers, getTeacherById, deleteTeacher } from '@/api/teacher'
+import { useToast } from '@/composables/useToast'
 import type { Teacher } from '@/types/teacher'
+
+const { showSuccess, showError } = useToast()
 
 const emit = defineEmits<{
   edit: [teacher: Teacher]
@@ -53,10 +56,11 @@ async function handleDelete(teacher: Teacher) {
 
   try {
     await deleteTeacher(teacher.teacherId!)
+    showSuccess('教师已删除')
     loadTeachers()
   } catch (e: any) {
     const detail = e?.response?.data?.msg || e?.message || '未知错误'
-    error.value = '删除失败: ' + detail
+    showError('删除失败: ' + detail)
   }
 }
 

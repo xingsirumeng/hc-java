@@ -12,6 +12,7 @@ public interface AssignmentService {
     void createAssignment(Assignment assignment);
     void updateAssignment(Assignment assignment);
     void deleteAssignment(String name);
+    void batchDeleteAssignments(List<String> names);
     Assignment findByName(String name);
     List<Submission> getSubmissions(String assignmentName);
 

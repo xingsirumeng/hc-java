@@ -13,7 +13,10 @@ import {
   downloadFile,
   previewFile,
 } from '@/api/teacher'
+import { useToast } from '@/composables/useToast'
 import type { Course, StudentAssignmentDTO, Submission } from '@/types/teacher'
+
+const { showSuccess, showError } = useToast()
 
 const router = useRouter()
 
@@ -59,8 +62,6 @@ const detailError = ref('')
 // 提交相关
 const selectedFile = ref<File | null>(null)
 const submitting = ref(false)
-const submitMsg = ref('')
-const submitError = ref(false)
 
 // 提交记录
 const submissions = ref<Submission[]>([])
@@ -155,11 +156,18 @@ function isCommentExpanded(key: string): boolean {
   return expandedComments.value.has(key)
 }
 
+function parseAttachments(json: string | null): Array<{ filename: string; filepath: string }> {
+  if (!json) return []
+  try {
+    return JSON.parse(json)
+  } catch {
+    return []
+  }
+}
+
 // 个人资料
 const profileForm = ref({ name: '', password: '', confirmPassword: '' })
 const profileSaving = ref(false)
-const profileMsg = ref('')
-const profileError = ref(false)
 
 // ── 加载课程 ──
 async function loadCourses() {
@@ -227,14 +235,11 @@ function onFileChange(e: Event) {
 // ── 提交作业 ──
 async function handleSubmit() {
   if (!selectedAssignment.value || !selectedFile.value) {
-    submitMsg.value = '请选择文件'
-    submitError.value = true
+    showError('请选择文件')
     return
   }
 
   submitting.value = true
-  submitMsg.value = ''
-  submitError.value = false
 
   try {
     const uploadResult = await uploadFile(selectedFile.value)
@@ -244,7 +249,7 @@ async function handleSubmit() {
       uploadResult.originalFilename,
     )
 
-    submitMsg.value = '✅ 提交成功'
+    showSuccess('提交成功')
     selectedFile.value = null
     const fileInput = document.getElementById('fileInput') as HTMLInputElement
     if (fileInput) fileInput.value = ''
@@ -253,8 +258,7 @@ async function handleSubmit() {
     await viewAssignment(selectedAssignment.value.assignmentName)
   } catch (e: any) {
     const detail = e?.response?.data?.msg || e?.message || '未知错误'
-    submitMsg.value = '提交失败: ' + detail
-    submitError.value = true
+    showError('提交失败: ' + detail)
   } finally {
     submitting.value = false
   }
@@ -287,12 +291,8 @@ async function loadProfile() {
 
 // ── 保存个人资料 ──
 async function handleSaveProfile() {
-  profileMsg.value = ''
-  profileError.value = false
-
   if (profileForm.value.password && profileForm.value.password !== profileForm.value.confirmPassword) {
-    profileMsg.value = '两次输入的密码不一致'
-    profileError.value = true
+    showError('两次输入的密码不一致')
     return
   }
 
@@ -306,8 +306,7 @@ async function handleSaveProfile() {
       data.password = profileForm.value.password
     }
     if (!data.name && !data.password) {
-      profileMsg.value = '没有需要修改的内容'
-      profileError.value = true
+      showError('没有需要修改的内容')
       return
     }
 
@@ -318,11 +317,10 @@ async function handleSaveProfile() {
     }
     profileForm.value.password = ''
     profileForm.value.confirmPassword = ''
-    profileMsg.value = '✅ 资料更新成功'
+    showSuccess('资料更新成功')
   } catch (e: any) {
     const detail = e?.response?.data?.msg || e?.message || '未知错误'
-    profileMsg.value = '保存失败: ' + detail
-    profileError.value = true
+    showError('保存失败: ' + detail)
   } finally {
     profileSaving.value = false
   }
@@ -520,8 +518,14 @@ onMounted(async () => {
                   <span v-if="a.score != null" class="score-badge">得分: {{ a.score }}</span>
                 </p>
               </div>
-              <div class="assign-status done-tag">
-                {{ a.score != null ? '已批改' : '已提交' }}
+              <div class="assign-status"
+                :class="{
+                  'done-tag': a.score != null && a.status !== 'returned',
+                  'returned-tag': a.status === 'returned',
+                  'pending-tag': a.score == null && a.status !== 'returned'
+                }"
+              >
+                {{ a.status === 'returned' ? '已打回' : a.score != null ? '已批改' : '已提交' }}
               </div>
             </div>
           </div>
@@ -556,8 +560,13 @@ onMounted(async () => {
             </div>
 
             <!-- 已提交 -->
-            <div v-if="selectedAssignment.submitted" class="detail-submitted">
+            <div v-if="selectedAssignment.submitted" class="detail-submitted" :class="{ 'detail-returned': selectedAssignment.status === 'returned' }">
               <h4>📤 你的提交</h4>
+              <div v-if="selectedAssignment.status === 'returned'" class="returned-notice">
+                <strong>⚠ 作业已被打回</strong>
+                <p v-if="selectedAssignment.returnReason">原因: {{ selectedAssignment.returnReason }}</p>
+                <p>请修改后重新提交</p>
+              </div>
               <p>提交时间: {{ fmtDate(selectedAssignment.submissionTime) }}</p>
               <p v-if="selectedAssignment.originalFilename">文件: {{ selectedAssignment.originalFilename }}</p>
               <div class="detail-actions">
@@ -596,17 +605,24 @@ onMounted(async () => {
                     🔍 查看批注大图
                   </button>
                 </div>
+                <!-- 批改附件 -->
+                <div v-if="selectedAssignment.gradeAttachments" class="grade-attachments-section">
+                  <h4>📎 教师批改附件</h4>
+                  <div v-for="(att, idx) in parseAttachments(selectedAssignment.gradeAttachments)" :key="idx" class="grade-att-item">
+                    <span>{{ att.filename }}</span>
+                    <button class="btn-sm" @click="downloadFile(att.filepath, att.filename)">下载</button>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- 提交表单 -->
             <div class="submit-section">
-              <h4>{{ selectedAssignment.submitted ? '📎 重新提交' : '📎 提交作业' }}</h4>
+              <h4>{{ selectedAssignment.submitted ? (selectedAssignment.status === 'returned' ? '🔄 重新提交（已打回）' : '📎 重新提交') : '📎 提交作业' }}</h4>
               <input id="fileInput" type="file" @change="onFileChange" />
               <button class="btn-submit" :disabled="submitting" @click="handleSubmit">
                 {{ submitting ? '提交中...' : '提交' }}
               </button>
-              <p v-if="submitMsg" :class="submitError ? 'error' : 'success'">{{ submitMsg }}</p>
             </div>
           </template>
         </div>
@@ -679,7 +695,6 @@ onMounted(async () => {
         <button :disabled="profileSaving" @click="handleSaveProfile">
           {{ profileSaving ? '保存中...' : '保存修改' }}
         </button>
-        <p v-if="profileMsg" :class="profileError ? 'error' : 'success'">{{ profileMsg }}</p>
       </div>
     </section>
   </div>
@@ -796,6 +811,7 @@ onMounted(async () => {
 .overdue-tag { background: #fff2f0; color: #f5222d; }
 .pending-tag { background: #fff7e6; color: #fa8c16; }
 .done-tag { background: #f6ffed; color: #52c41a; }
+.returned-tag { background: #fff7f7; color: #f5222d; }
 
 /* 弹窗 */
 .modal-overlay {
@@ -848,6 +864,19 @@ onMounted(async () => {
   border: 1px solid #e8e8e8; cursor: pointer; display: block; transition: opacity 0.2s;
 }
 .annotated-img:hover { opacity: 0.85; }
+.detail-returned { background: #fff7f7; border: 1px solid #ffccc7; }
+.returned-notice {
+  background: #fff2f0; border: 1px solid #ffccc7; border-radius: 6px;
+  padding: 12px; margin-bottom: 12px;
+}
+.returned-notice strong { color: #f5222d; font-size: 14px; }
+.returned-notice p { margin: 4px 0 0; font-size: 13px; color: #666; }
+.grade-attachments-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid #d9f0c5; }
+.grade-attachments-section h4 { margin: 0 0 8px; font-size: 14px; }
+.grade-att-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 10px; background: #f5f5f5; border-radius: 4px; margin-bottom: 4px; font-size: 13px;
+}
 
 /* 提交记录 */
 .submission-card {

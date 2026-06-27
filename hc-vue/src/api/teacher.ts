@@ -165,6 +165,7 @@ export async function gradeSubmission(
   score: number | null,
   comment: string | null,
   annotatedFilepath?: string | null,
+  gradeAttachments?: string | null,
 ): Promise<string> {
   const res = await api.put<Result<string>>('/submission/grade', {
     assignmentName,
@@ -172,7 +173,113 @@ export async function gradeSubmission(
     score,
     comment,
     annotatedFilepath: annotatedFilepath || null,
+    gradeAttachments: gradeAttachments || null,
   })
+  return res.data.data
+}
+
+/** 打回作业 */
+export async function returnSubmission(
+  assignmentName: string,
+  studentId: string,
+  reason?: string,
+): Promise<string> {
+  const res = await api.put<Result<string>>('/submission/return', {
+    assignmentName,
+    studentId,
+    reason: reason || null,
+  })
+  return res.data.data
+}
+
+/** 批量批改作业 */
+export async function batchGradeSubmissions(
+  grades: Array<{
+    assignmentName: string
+    studentId: string
+    score: number | null
+    comment: string | null
+    annotatedFilepath?: string | null
+    gradeAttachments?: string | null
+  }>,
+): Promise<string> {
+  const res = await api.put<Result<string>>('/submission/batch-grade', { grades })
+  return res.data.data
+}
+
+/** 批量删除作业 */
+export async function batchDeleteAssignments(names: string[]): Promise<string> {
+  const res = await api.delete<Result<string>>('/assignment/batch', { data: { names } })
+  return res.data.data
+}
+
+// ================================================================
+// 延期管理
+// ================================================================
+
+/** 获取某作业的所有延期记录 */
+export async function getExtensions(assignmentName: string): Promise<import('@/types/teacher').DeadlineExtension[]> {
+  const res = await api.get<Result<import('@/types/teacher').DeadlineExtension[]>>(
+    `/assignment/${encodeURIComponent(assignmentName)}/extensions`,
+  )
+  return res.data.data
+}
+
+/** 为单个学生延长提交时间 */
+export async function extendDeadline(
+  assignmentName: string,
+  studentId: string,
+  extendedEndTime: string,
+  reason?: string,
+): Promise<string> {
+  const res = await api.post<Result<string>>(
+    `/assignment/${encodeURIComponent(assignmentName)}/extend`,
+    { studentId, extendedEndTime, reason: reason || null },
+  )
+  return res.data.data
+}
+
+/** 批量为学生延长提交时间 */
+export async function batchExtendDeadline(
+  assignmentName: string,
+  extensions: Array<{ studentId: string; extendedEndTime: string; reason?: string }>,
+): Promise<string> {
+  const res = await api.post<Result<string>>(
+    `/assignment/${encodeURIComponent(assignmentName)}/extend/batch`,
+    { extensions },
+  )
+  return res.data.data
+}
+
+/** 撤销学生的延期 */
+export async function revokeExtension(assignmentName: string, studentId: string): Promise<string> {
+  const res = await api.delete<Result<string>>(
+    `/assignment/${encodeURIComponent(assignmentName)}/extend/${encodeURIComponent(studentId)}`,
+  )
+  return res.data.data
+}
+
+// ================================================================
+// 相似度查询
+// ================================================================
+
+/** 查询作业相似度结果 */
+export async function getSimilarities(
+  assignmentName: string,
+  studentId?: string,
+): Promise<import('@/types/teacher').AssignmentSimilarity[]> {
+  const res = await api.get<Result<import('@/types/teacher').AssignmentSimilarity[]>>(
+    `/assignment/${encodeURIComponent(assignmentName)}/similarity`,
+    { params: studentId ? { studentId } : {} },
+  )
+  return res.data.data
+}
+
+/** 触发相似度计算（异步），返回 { totalPairs, message } */
+export async function computeSimilarities(assignmentName: string): Promise<{ totalPairs: number; message: string }> {
+  const res = await api.post<Result<{ totalPairs: number; message: string }>>(
+    `/assignment/${encodeURIComponent(assignmentName)}/similarity/compute`,
+  )
   return res.data.data
 }
 
