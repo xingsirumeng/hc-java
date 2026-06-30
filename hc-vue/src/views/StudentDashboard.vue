@@ -507,15 +507,25 @@ onMounted(async () => {
             <div
               v-for="a in submittedAssignments"
               :key="a.assignmentName"
-              class="assign-card submitted"
+              class="assign-card"
+              :class="{
+                submitted: a.status !== 'returned',
+                returned: a.status === 'returned',
+              }"
               @click="viewAssignment(a.assignmentName)"
             >
               <div class="assign-main">
-                <h4>{{ a.assignmentName }}</h4>
+                <h4>
+                  {{ a.assignmentName }}
+                  <span v-if="a.status === 'returned'" class="returned-badge">⚠ 已打回</span>
+                </h4>
                 <p class="assign-meta">{{ a.courseName }}</p>
                 <p class="assign-submitted">
                   提交于 {{ fmtDate(a.submissionTime) }}
                   <span v-if="a.score != null" class="score-badge">得分: {{ a.score }}</span>
+                </p>
+                <p v-if="a.status === 'returned' && a.returnReason" class="returned-reason">
+                  原因: {{ a.returnReason }}
                 </p>
               </div>
               <div class="assign-status"
@@ -605,13 +615,13 @@ onMounted(async () => {
                     🔍 查看批注大图
                   </button>
                 </div>
-                <!-- 批改附件 -->
-                <div v-if="selectedAssignment.gradeAttachments" class="grade-attachments-section">
-                  <h4>📎 教师批改附件</h4>
-                  <div v-for="(att, idx) in parseAttachments(selectedAssignment.gradeAttachments)" :key="idx" class="grade-att-item">
-                    <span>{{ att.filename }}</span>
-                    <button class="btn-sm" @click="downloadFile(att.filepath, att.filename)">下载</button>
-                  </div>
+              </div>
+              <!-- 批改附件（独立于成绩显示） -->
+              <div v-if="selectedAssignment.gradeAttachments" class="grade-attachments-section">
+                <h4>📎 教师批改附件</h4>
+                <div v-for="(att, idx) in parseAttachments(selectedAssignment.gradeAttachments)" :key="idx" class="grade-att-item">
+                  <span>{{ att.filename }}</span>
+                  <button class="btn-sm" @click="downloadFile(att.filepath, att.filename)">下载</button>
                 </div>
               </div>
             </div>
@@ -665,6 +675,12 @@ onMounted(async () => {
                 style="margin-top: 6px;"
                 @click="previewFile(s.annotatedFilepath!)"
               >🖊 查看批注</button>
+              <div v-if="s.gradeAttachments" style="margin-top:6px;">
+                <div v-for="(att, idx) in parseAttachments(s.gradeAttachments)" :key="idx" style="display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0;">
+                  <span style="color:#666;">📎 {{ att.filename }}</span>
+                  <button class="btn-sm" style="padding:2px 8px;font-size:11px;" @click="downloadFile(att.filepath, att.filename)">下载</button>
+                </div>
+              </div>
             </template>
             <span v-else class="pending">待批改</span>
           </div>
@@ -799,6 +815,17 @@ onMounted(async () => {
 .assign-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 .assign-card.overdue { border-left-color: #f5222d; }
 .assign-card.submitted { border-left-color: #bbb; }
+.assign-card.returned { border-left-color: #faad14; background: #fffdf5; }
+
+.returned-badge {
+  display: inline-block; margin-left: 6px; padding: 1px 8px;
+  background: #fff2f0; color: #f5222d; border: 1px solid #ffccc7;
+  border-radius: 4px; font-size: 11px; font-weight: 500; vertical-align: middle;
+}
+
+.returned-reason {
+  margin: 4px 0 0; font-size: 12px; color: #f5222d;
+}
 .assign-main h4 { margin: 0; font-size: 15px; color: #333; }
 .assign-meta { margin: 4px 0; font-size: 13px; color: #888; }
 .assign-deadline { margin: 0; font-size: 13px; font-weight: 500; }
@@ -871,11 +898,11 @@ onMounted(async () => {
 }
 .returned-notice strong { color: #f5222d; font-size: 14px; }
 .returned-notice p { margin: 4px 0 0; font-size: 13px; color: #666; }
-.grade-attachments-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid #d9f0c5; }
-.grade-attachments-section h4 { margin: 0 0 8px; font-size: 14px; }
+.grade-attachments-section { margin-top: 16px; padding: 12px; background: #fafafa; border-radius: 6px; }
+.grade-attachments-section h4 { margin: 0 0 8px; font-size: 14px; color: #333; }
 .grade-att-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 6px 10px; background: #f5f5f5; border-radius: 4px; margin-bottom: 4px; font-size: 13px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 10px; background: #fff; border: 1px solid #eee; border-radius: 4px; margin-bottom: 4px; font-size: 13px;
 }
 
 /* 提交记录 */

@@ -311,8 +311,11 @@ onMounted(load)
     <div class="list-header">
       <h3>作业列表</h3>
       <div class="list-header-actions">
-        <button v-if="assignments.length > 0" class="btn-multi-toggle" @click="toggleMultiSelect">
-          {{ multiSelectMode ? '退出多选' : '多选模式' }}
+        <button v-if="assignments.length > 0" class="btn-multi-toggle" :class="{ active: multiSelectMode }" @click="toggleMultiSelect" title="多选模式">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          </svg>
         </button>
         <button
           v-if="multiSelectMode && selectedAssignments.size > 0"
@@ -622,16 +625,18 @@ onMounted(load)
 
 /* 多选切换 */
 .btn-multi-toggle {
-  padding: 4px 12px;
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
   background: #fff;
-  color: #4a90d9;
-  border: 1px solid #4a90d9;
-  border-radius: 4px;
-  font-size: 12px;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
 
-.btn-multi-toggle:hover { background: #f0f7ff; }
+.btn-multi-toggle:hover { color: #4a90d9; border-color: #4a90d9; background: #f0f7ff; }
+.btn-multi-toggle.active { color: #4a90d9; border-color: #4a90d9; background: #e6f0fc; }
 
 /* 批量操作栏 */
 .batch-bar {
